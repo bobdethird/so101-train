@@ -1,0 +1,15 @@
+# env files
+.env.local
+.env
+
+# vscode files
+.vscode
+
+# pycache
+__pycache__
+
+# logs
+logs/
+
+# data
+data/
