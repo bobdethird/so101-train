@@ -14,7 +14,8 @@ DISPLAY_DATA = True
 FPS = 60
 
 camera_config = {
-    "front": OpenCVCameraConfig(index_or_path=0, width=1920, height=1080, fps=30)
+    "wrist": OpenCVCameraConfig(index_or_path=0, width=640, height=480, fps=30),
+    "side": OpenCVCameraConfig(index_or_path=3, width=640, height=480, fps=30),
 } if USE_CAMERA else {}
 
 robot_config = SO101FollowerConfig(
