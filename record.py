@@ -37,7 +37,7 @@ robot_config = SO101FollowerConfig(
     id="my_awesome_follower_arm",
     cameras={
         "wrist": OpenCVCameraConfig(index_or_path=0, width=640, height=480, fps=30),
-        "side": OpenCVCameraConfig(index_or_path=3, width=640, height=480, fps=30),
+        "front": OpenCVCameraConfig(index_or_path=3, width=640, height=480, fps=30),
     },
     port="/dev/tty.usbmodem5AE60557941",
 )
