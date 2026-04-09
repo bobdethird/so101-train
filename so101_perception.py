@@ -9,9 +9,8 @@ from perception import detect_red_object
 
 logger = logging.getLogger(__name__)
 
-# Camera to run detection on. Must match a key in your camera config.
-# Use the fixed camera (not wrist) so pixel coords are a stable reference.
-DETECTION_CAMERA = "front"
+# Cameras to run detection on. Must match keys in your camera config.
+DETECTION_CAMERAS = ["wrist", "side", "top"]
 
 # Sentinel value when object is not detected
 NO_DETECTION = -1.0
@@ -20,38 +19,44 @@ NO_DETECTION = -1.0
 class SO101FollowerWithPerception(SOFollower):
     """SO101Follower that adds 2D object pose from color detection to observations.
 
-    Adds two float features to observation_features:
-      - object_u: normalized x-coordinate of detected object [0, 1], or -1 if not found
-      - object_v: normalized y-coordinate of detected object [0, 1], or -1 if not found
+    Runs red object detection on all three cameras and adds six float features:
+      - wrist_object_u, wrist_object_v: from the wrist camera
+      - side_object_u, side_object_v: from the side camera
+      - top_object_u, top_object_v: from the top camera
 
     These automatically merge into observation.state via hw_to_dataset_features,
-    expanding it from shape (6,) to (8,) with no changes to LeRobot internals.
+    expanding it from shape (6,) to (12,) with no changes to LeRobot internals.
     """
 
     @cached_property
     def observation_features(self) -> dict[str, type | tuple]:
         base = {**self._motors_ft, **self._cameras_ft}
-        base["object_u"] = float
-        base["object_v"] = float
+        for cam in DETECTION_CAMERAS:
+            base[f"{cam}_object_u"] = float
+            base[f"{cam}_object_v"] = float
         return base
 
     def get_observation(self) -> RobotObservation:
         obs = super().get_observation()
 
-        image = obs.get(DETECTION_CAMERA)
-        if image is not None:
-            result = detect_red_object(image)
-            if result is not None:
-                obs["object_u"] = result["centroid"][0]
-                obs["object_v"] = result["centroid"][1]
-                logger.debug(f"Object detected at ({result['centroid'][0]:.3f}, {result['centroid'][1]:.3f})")
+        for cam in DETECTION_CAMERAS:
+            u_key = f"{cam}_object_u"
+            v_key = f"{cam}_object_v"
+
+            image = obs.get(cam)
+            if image is not None:
+                result = detect_red_object(image)
+                if result is not None:
+                    obs[u_key] = result["centroid"][0]
+                    obs[v_key] = result["centroid"][1]
+                    logger.debug(f"{cam}: object at ({result['centroid'][0]:.3f}, {result['centroid'][1]:.3f})")
+                else:
+                    obs[u_key] = NO_DETECTION
+                    obs[v_key] = NO_DETECTION
+                    logger.debug(f"{cam}: object not detected")
             else:
-                obs["object_u"] = NO_DETECTION
-                obs["object_v"] = NO_DETECTION
-                logger.debug("Object not detected")
-        else:
-            obs["object_u"] = NO_DETECTION
-            obs["object_v"] = NO_DETECTION
-            logger.warning(f"Camera '{DETECTION_CAMERA}' not found in observation")
+                obs[u_key] = NO_DETECTION
+                obs[v_key] = NO_DETECTION
+                logger.warning(f"Camera '{cam}' not found in observation")
 
         return obs
