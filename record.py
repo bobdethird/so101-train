@@ -1,7 +1,8 @@
 from lerobot.cameras.opencv.configuration_opencv import OpenCVCameraConfig
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
 from lerobot.datasets.feature_utils import hw_to_dataset_features
-from lerobot.robots.so_follower import SO101Follower, SO101FollowerConfig
+from lerobot.robots.so_follower import SO101FollowerConfig
+from so101_perception import SO101FollowerWithPerception
 from lerobot.teleoperators.so_leader import SO101LeaderConfig, SO101Leader
 from lerobot.utils.control_utils import init_keyboard_listener
 from lerobot.utils.utils import log_say
@@ -47,7 +48,7 @@ teleop_config = SO101LeaderConfig(
     port="/dev/tty.usbmodem5AE60534461",
 )
 
-robot = SO101Follower(robot_config)
+robot = SO101FollowerWithPerception(robot_config)
 teleop = SO101Leader(teleop_config)
 
 action_features = hw_to_dataset_features(robot.action_features, "action", USE_VIDEOS)
