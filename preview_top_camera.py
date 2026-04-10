@@ -2,7 +2,7 @@ import cv2
 import json
 from pathlib import Path
 
-CAMERA_INDEX = 1
+CAMERA_INDEX = 0
 WINDOW = "Top Camera"
 CONFIG_PATH = Path(__file__).parent / "camera_overlay.json"
 GRAB_RADIUS = 10
